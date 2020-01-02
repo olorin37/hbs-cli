@@ -1,4 +1,5 @@
 * Simple CLI for Handlebars
 
 Simple CLI for generating text from handlebars (or Mustache) templates,
-feed with data from file (YAML parser used is for it).
+by feeding them with data from file (YAML parser used is for it, so JSON
+also supported).
