@@ -1,5 +1,23 @@
-* Simple CLI for Handlebars
+* Simple Handlebars CLI (in Rust)
 
 Simple CLI for generating text from handlebars (or Mustache) templates,
 by feeding them with data from file (YAML parser used is for it, so JSON
-also supported).
+also supported), writen in Rust programming language (with usage serde_yaml
+and handlebars crates).
+
+** Usage
+
+#+begin_src bash
+hbs-cli <properties file> <template file> > <output file>
+#+end_src
+
+Where ~<properties file>~ can be ether YAML or JSON (as YAML parser
+is a JSON parser too) and ~<template file>~ is handlebars template
+(so Mustache templates should work also). Template is generated on
+standard output.
+
+** Building
+
+#+begin_src bash
+cargo build --release  # for release binary
+#+end_src
