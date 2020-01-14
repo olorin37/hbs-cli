@@ -15,15 +15,15 @@ use handlebars::Handlebars;
 #[structopt(name = "hbs-cli",
             about = "Simple handlebars CLI",
             rename_all = "kebab-case")]
-/// Simple CLI for generating text from handlebars (or Mustache) templates,
-/// feed with data from file (YAML parser used is for it).
+/// Simple CLI for generating text from handlebars templates, feed with data
+/// from file (YAML parser used is for it).
 struct Opt {
     #[structopt(parse(from_os_str), name="PROPS_FILE")]
     /// Properties file can be ether YAML or JSON (as JSON is YAMLs subset)
     propsfile: PathBuf,
 
     #[structopt(parse(from_os_str), name="TEMPLATE_FILE")]
-    /// Template Handlebars or Mustache (as Mustashe is Handlebars' subset)
+    /// Template Handlebars
     template: PathBuf,
 
     #[structopt(short,long)]
