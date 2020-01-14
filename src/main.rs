@@ -40,10 +40,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let data: Value = serde_yaml::from_reader(propsfile)?;
     let template = fs::read_to_string(opt.template)?;
 
-    println!(
-        "{}",
-        reg.render_template(&template, &data)?
-    );
+    let text = reg.render_template(&template, &data)?;
+    match opt.output {
+        Some(path) => fs::write(path, text)?,
+        None => println!("{}", text),
+    };
 
     Ok(())
 }
