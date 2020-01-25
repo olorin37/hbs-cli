@@ -38,16 +38,27 @@ struct Opt {
     /// Those templates can be used as partials.
     register_glob: Option<String>,
 
+    #[structopt(short,long)]
+    /// Make error output verobse
+    verbose: bool,
+
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let opt = Opt::from_args();
-    eprintln!("{:?}", opt);
+    if opt.verbose { eprintln!("{:?}", opt); }
     let mut reg = Handlebars::new();
 
     match opt.register_glob {
-        Some(pattern) => register_templates_from_pattern(&mut reg, pattern).unwrap(),
-        None => eprintln!("No glob provided for templates registration."),
+        Some(pattern) => {
+            if opt.verbose {
+                eprintln!( "Registring templates matching to {:?}", pattern );
+            }
+            register_templates_from_pattern(&mut reg, pattern)?;
+        }
+        None => if opt.verbose {
+            eprintln!("No glob provided for templates registration.");
+        }
     };
 
     let propsfile = File::open(opt.propsfile)?;
@@ -67,7 +78,6 @@ fn register_templates_from_pattern(
     hbs: &mut Handlebars,
     pattern: String
 ) -> Result<(), Box<dyn Error>> {
-    eprintln!( "Registring templates matching to {:?}", pattern );
     for entry in glob( &pattern ).expect( "Failed to read glob pattern" ) {
         match entry {
             Ok( path ) => {
