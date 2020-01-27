@@ -8,8 +8,8 @@ repository = "https://github.com/olorin37/hbs-cli"
 documentation = "https://docs.rs/crate/hbs-cli"
 readme = "README.org"
 keywords = ["handlebars", "templating", "cli", "YAML", "JSON"]
-categories = ["template"]
-license-file = "LICENSE"
+categories = ["command-line-interface", "command-line-utilities", "value-formatting"]
+license = "MIT"
 edition = "2018"
 
 [dependencies]
