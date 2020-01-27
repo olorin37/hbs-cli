@@ -1,7 +1,15 @@
 [package]
 name = "hbs-cli"
+description = "Simple CLI for generating text from handlebars templates, by feeding them with data from file YAML/JSON."
 version = "0.1.0"
-authors = ["Jakub A. Gramsz <jakub@gramsz.com>"]
+authors = [ "Jakub A. Gramsz <jakub@gramsz.com>" ]
+homepage = "https://github.com/olorin37/hbs-cli"
+repository = "https://github.com/olorin37/hbs-cli"
+documentation = "https://docs.rs/crate/hbs-cli"
+readme = "README.org"
+keywords = ["handlebars", "templating", "cli", "YAML", "JSON"]
+categories = ["template"]
+license-file = "LICENSE"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
