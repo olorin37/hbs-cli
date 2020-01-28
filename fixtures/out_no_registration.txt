@@ -1,8 +1,5 @@
 Number: 1234567899.
 
 A partial:
-A => 3.14
 B partial:
-B => hbs,
 C partial:
-C => .
