@@ -2,15 +2,26 @@ use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::path::Path;
+use std::path::PathBuf;
+use std::str::from_utf8;
+use std::process::Command;
 
-extern crate structopt;
-extern crate handlebars;
-extern crate serde_yaml;
+
+#[macro_use] extern crate handlebars;
 
 use structopt::StructOpt;
-use std::path::PathBuf;
+
 use serde_yaml::Value;
+
+//use handlebars as hbs;
 use handlebars::Handlebars;
+use handlebars::Helper;
+use handlebars::RenderError;
+use handlebars::Output;
+use handlebars::Context;
+use handlebars::RenderContext;
+use handlebars::HelperResult;
+
 use glob::glob;
 
 #[derive(Debug, StructOpt)]
@@ -42,6 +53,13 @@ struct Opt {
     /// Make error output verobse
     verbose: bool,
 
+    #[structopt(short = "h", long)]
+    /// Register helper
+    register_helper: Option<String>,
+
+    #[structopt(short = "E", long)]
+    /// Use environment variables as data source
+    env: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -64,6 +82,28 @@ fn main() -> Result<(), Box<dyn Error>> {
     let propsfile = File::open(opt.propsfile)?;
     let data: Value = serde_yaml::from_reader(propsfile)?;
     let template = fs::read_to_string(opt.template)?;
+
+    // try helpers:
+    handlebars_helper!(hex: |v: i64| format!("0x{:x}", v));
+    reg.register_helper("hex", Box::new(hex));
+
+    reg.register_helper("sh-cat",
+        Box::new(
+            | h: &Helper, _r: &Handlebars, _: &Context, _rc: &mut RenderContext,
+              out: &mut dyn Output| -> HelperResult {
+            let param = h.param(0).ok_or(RenderError::new("param not found"))?;
+            let param = param.value().as_str().unwrap_or("");
+
+            let proc = Command::new("cat")
+                        .args(&[ param ])
+                        .output()
+                        .expect("Failed to execute process `cat`");
+            out.write(from_utf8(&proc.stdout).unwrap())?;
+
+            Ok(())
+        }));
+    // end, TODO registration should be moved to the other function
+    //           and applied to each -h value and -H pattern matchings
 
     let text = reg.render_template(&template, &data)?;
     match opt.output {
