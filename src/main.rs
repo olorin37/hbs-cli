@@ -86,24 +86,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     // try helpers:
     handlebars_helper!(hex: |v: i64| format!("0x{:x}", v));
     reg.register_helper("hex", Box::new(hex));
+    // end
 
-    reg.register_helper("sh-cat",
-        Box::new(
-            | h: &Helper, _r: &Handlebars, _: &Context, _rc: &mut RenderContext,
-              out: &mut dyn Output| -> HelperResult {
-            let param = h.param(0).ok_or(RenderError::new("param not found"))?;
-            let param = param.value().as_str().unwrap_or("");
-
-            let proc = Command::new("cat")
-                        .args(&[ param ])
-                        .output()
-                        .expect("Failed to execute process `cat`");
-            out.write(from_utf8(&proc.stdout).unwrap())?;
-
-            Ok(())
-        }));
-    // end, TODO registration should be moved to the other function
-    //           and applied to each -h value and -H pattern matchings
+    import_command_as_helper(&mut reg, "cat")?;
 
     let text = reg.render_template(&template, &data)?;
     match opt.output {
@@ -111,6 +96,30 @@ fn main() -> Result<(), Box<dyn Error>> {
         None => println!("{}", text),
     };
 
+    Ok(())
+}
+
+/// Leverages the command to be a handlebars helper. Command must be in the PATH
+/// TODO, maybe all available commands should be leverage?
+fn import_command_as_helper(
+    hbs: &mut Handlebars,
+    command_name: &'static str,
+) -> Result<(), Box<dyn Error>> {
+    hbs.register_helper(command_name,
+        Box::new(move
+            | h: &Helper, _r: &Handlebars, _: &Context, _rc: &mut RenderContext,
+              out: &mut dyn Output| -> HelperResult {
+            let param = h.param(0).ok_or(RenderError::new("param not found"))?;
+            let param = param.value().as_str().unwrap_or("");
+
+            let proc = Command::new(command_name)
+                        .args(&[ param ])
+                        .output()
+                        .expect("Failed to execute process `cat`");
+            out.write(from_utf8(&proc.stdout).unwrap())?;
+
+            Ok(())
+        }));
     Ok(())
 }
 
