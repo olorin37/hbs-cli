@@ -55,7 +55,7 @@ struct Opt {
 
     #[structopt(short = "h", long)]
     /// Register helper
-    register_helper: Option<String>,
+    helper: Vec<String>,
 
     #[structopt(short = "E", long)]
     /// Use environment variables as data source
@@ -63,6 +63,8 @@ struct Opt {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let h = hbs_cli::HelperDecl::from_str("helpern:helperpath");
+    println!("{}=>{}", h.name, h.file);
     let opt = Opt::from_args();
     if opt.verbose { eprintln!("{:?}", opt); }
     let mut reg = Handlebars::new();
@@ -105,14 +107,14 @@ fn import_command_as_helper(
     hbs: &mut Handlebars,
     command_name: &'static str,
 ) -> Result<(), Box<dyn Error>> {
-    hbs.register_helper(command_name,
+    hbs.register_helper(&command_name,
         Box::new(move
             | h: &Helper, _r: &Handlebars, _: &Context, _rc: &mut RenderContext,
               out: &mut dyn Output| -> HelperResult {
             let param = h.param(0).ok_or(RenderError::new("param not found"))?;
             let param = param.value().as_str().unwrap_or("");
 
-            let proc = Command::new(command_name)
+            let proc = Command::new(&command_name)
                         .args(&[ param ])
                         .output()
                         .expect("Failed to execute process `cat`");
