@@ -2,15 +2,26 @@ use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::path::Path;
+use std::path::PathBuf;
+use std::str::from_utf8;
+use std::process::Command;
 
-extern crate structopt;
-extern crate handlebars;
-extern crate serde_yaml;
+
+#[macro_use] extern crate handlebars;
 
 use structopt::StructOpt;
-use std::path::PathBuf;
+
 use serde_yaml::Value;
+
+//use handlebars as hbs;
 use handlebars::Handlebars;
+use handlebars::Helper;
+use handlebars::RenderError;
+use handlebars::Output;
+use handlebars::Context;
+use handlebars::RenderContext;
+use handlebars::HelperResult;
+
 use glob::glob;
 
 #[derive(Debug, StructOpt)]
@@ -42,11 +53,21 @@ struct Opt {
     /// Make error output verobse
     verbose: bool,
 
+    #[structopt(short = "h", long = "helper")]
+    /// Register helper
+    helpers: Vec<String>,
+
+    #[structopt(short = "E", long)]
+    /// Use environment variables as data source
+    env: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+
     let opt = Opt::from_args();
+
     if opt.verbose { eprintln!("{:?}", opt); }
+
     let mut reg = Handlebars::new();
 
     match opt.register_glob {
@@ -54,12 +75,27 @@ fn main() -> Result<(), Box<dyn Error>> {
             if opt.verbose {
                 eprintln!( "Registring templates matching to {:?}", pattern );
             }
-            register_templates_from_pattern(&mut reg, pattern)?;
+            reg = register_templates_from_pattern(&mut reg, pattern)?;
         }
         None => if opt.verbose {
             eprintln!("No glob provided for templates registration.");
         }
     };
+
+    for helper_opt in opt.helpers {
+        let helper = hbs_cli::HelperDecl::from_str(&helper_opt);
+        reg = import_command_as_helper(
+            &mut reg,
+            String::from(helper.name),
+            String::from(helper.file),
+        )?;
+    }
+
+    // try helpers:
+    handlebars_helper!(hex: |v: i64| format!("0x{:x}", v));
+    reg.register_helper("hex", Box::new(hex));
+    // end
+
 
     let propsfile = File::open(opt.propsfile)?;
     let data: Value = serde_yaml::from_reader(propsfile)?;
@@ -74,10 +110,34 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn register_templates_from_pattern(
-    hbs: &mut Handlebars,
+/// Leverages the command to be a handlebars helper. Command must be in the PATH
+fn import_command_as_helper<'a>(
+    hbs: &'a mut Handlebars<'a>,
+    helper_name: String,
+    command_name: String,
+) -> Result<Handlebars<'a>, Box<dyn Error>> {
+    hbs.register_helper(&helper_name,
+        Box::new(move
+            | h: &Helper, _r: &Handlebars, _: &Context, _rc: &mut RenderContext,
+              out: &mut dyn Output | -> HelperResult {
+            let param = h.param(0).ok_or(RenderError::new("param not found"))?;
+            let param = param.value().as_str().unwrap_or("");
+
+            let proc = Command::new(&command_name)
+                        .args(&[ param ])
+                        .output()
+                        .expect("Failed to execute process");
+            out.write(from_utf8(&proc.stdout).unwrap())?;
+
+            Ok(())
+        }));
+    Ok(*hbs)
+}
+
+fn register_templates_from_pattern<'a>(
+    hbs: &'a mut Handlebars<'a>,
     pattern: String
-) -> Result<(), Box<dyn Error>> {
+) -> Result<Handlebars<'a>, Box<dyn Error>> {
     for entry in glob( &pattern ).expect( "Failed to read glob pattern" ) {
         match entry {
             Ok( path ) => {
@@ -94,5 +154,5 @@ fn register_templates_from_pattern(
             Err(e) => eprintln!("{:?}", e)
         }
     }
-    Ok(())
+    Ok(*hbs)
 }
