@@ -53,9 +53,9 @@ struct Opt {
     /// Make error output verobse
     verbose: bool,
 
-    #[structopt(short = "h", long)]
+    #[structopt(short = "h", long = "helper")]
     /// Register helper
-    helper: Vec<String>,
+    helpers: Vec<String>,
 
     #[structopt(short = "E", long)]
     /// Use environment variables as data source
@@ -63,10 +63,11 @@ struct Opt {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let h = hbs_cli::HelperDecl::from_str("helpern:helperpath");
-    println!("{}=>{}", h.name, h.file);
+
     let opt = Opt::from_args();
+
     if opt.verbose { eprintln!("{:?}", opt); }
+
     let mut reg = Handlebars::new();
 
     match opt.register_glob {
@@ -74,23 +75,31 @@ fn main() -> Result<(), Box<dyn Error>> {
             if opt.verbose {
                 eprintln!( "Registring templates matching to {:?}", pattern );
             }
-            register_templates_from_pattern(&mut reg, pattern)?;
+            reg = register_templates_from_pattern(&mut reg, pattern)?;
         }
         None => if opt.verbose {
             eprintln!("No glob provided for templates registration.");
         }
     };
 
-    let propsfile = File::open(opt.propsfile)?;
-    let data: Value = serde_yaml::from_reader(propsfile)?;
-    let template = fs::read_to_string(opt.template)?;
+    for helper_opt in opt.helpers {
+        let helper = hbs_cli::HelperDecl::from_str(&helper_opt);
+        reg = import_command_as_helper(
+            &mut reg,
+            String::from(helper.name),
+            String::from(helper.file),
+        )?;
+    }
 
     // try helpers:
     handlebars_helper!(hex: |v: i64| format!("0x{:x}", v));
     reg.register_helper("hex", Box::new(hex));
     // end
 
-    import_command_as_helper(&mut reg, "cat")?;
+
+    let propsfile = File::open(opt.propsfile)?;
+    let data: Value = serde_yaml::from_reader(propsfile)?;
+    let template = fs::read_to_string(opt.template)?;
 
     let text = reg.render_template(&template, &data)?;
     match opt.output {
@@ -102,33 +111,33 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 /// Leverages the command to be a handlebars helper. Command must be in the PATH
-/// TODO, maybe all available commands should be leverage?
-fn import_command_as_helper(
-    hbs: &mut Handlebars,
-    command_name: &'static str,
-) -> Result<(), Box<dyn Error>> {
-    hbs.register_helper(&command_name,
+fn import_command_as_helper<'a>(
+    hbs: &'a mut Handlebars<'a>,
+    helper_name: String,
+    command_name: String,
+) -> Result<Handlebars<'a>, Box<dyn Error>> {
+    hbs.register_helper(&helper_name,
         Box::new(move
             | h: &Helper, _r: &Handlebars, _: &Context, _rc: &mut RenderContext,
-              out: &mut dyn Output| -> HelperResult {
+              out: &mut dyn Output | -> HelperResult {
             let param = h.param(0).ok_or(RenderError::new("param not found"))?;
             let param = param.value().as_str().unwrap_or("");
 
             let proc = Command::new(&command_name)
                         .args(&[ param ])
                         .output()
-                        .expect("Failed to execute process `cat`");
+                        .expect("Failed to execute process");
             out.write(from_utf8(&proc.stdout).unwrap())?;
 
             Ok(())
         }));
-    Ok(())
+    Ok(*hbs)
 }
 
-fn register_templates_from_pattern(
-    hbs: &mut Handlebars,
+fn register_templates_from_pattern<'a>(
+    hbs: &'a mut Handlebars<'a>,
     pattern: String
-) -> Result<(), Box<dyn Error>> {
+) -> Result<Handlebars<'a>, Box<dyn Error>> {
     for entry in glob( &pattern ).expect( "Failed to read glob pattern" ) {
         match entry {
             Ok( path ) => {
@@ -145,5 +154,5 @@ fn register_templates_from_pattern(
             Err(e) => eprintln!("{:?}", e)
         }
     }
-    Ok(())
+    Ok(*hbs)
 }
