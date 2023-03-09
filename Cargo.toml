@@ -13,8 +13,8 @@ license = "MIT"
 edition = "2018"
 
 [dependencies]
-structopt = "<0.4"
-handlebars = "<4.0"
-serde = "<2.0"
-serde_yaml = "<0.9"
-glob = "<0.4"
+structopt = "0.3.26"
+handlebars = "3.5.5"
+serde = "1.0.154"
+serde_yaml = "0.8.26"
+glob = "0.3.1"
