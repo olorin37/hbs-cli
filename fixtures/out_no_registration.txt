@@ -1,5 +1,0 @@
-Number: 1234567899.
-
-A partial:
-B partial:
-C partial:
