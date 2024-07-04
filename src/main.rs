@@ -73,7 +73,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let text = reg.render_template(&template, &data)?;
     match opt.output {
         Some(path) => fs::write(path, text)?,
-        None => println!("{}", text),
+        None => print!("{}", text),
     };
 
     Ok(())
