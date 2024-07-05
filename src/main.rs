@@ -41,7 +41,7 @@ struct Opt {
     register_glob: Option<String>,
 
     #[structopt(short, long)]
-    /// Make error output verobse
+    /// Make error output verbose.
     verbose: bool,
 }
 
@@ -55,7 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     match opt.register_glob {
         Some(pattern) => {
             if opt.verbose {
-                eprintln!("Registring templates matching to {:?}", pattern);
+                eprintln!("Registering templates matching to {:?}", pattern);
             }
             register_templates_from_pattern(&mut reg, pattern)?;
         }
@@ -73,7 +73,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let text = reg.render_template(&template, &data)?;
     match opt.output {
         Some(path) => fs::write(path, text)?,
-        None => println!("{}", text),
+        None => print!("{}", text),
     };
 
     Ok(())
