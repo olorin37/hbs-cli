@@ -21,4 +21,4 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
     - name: CLI test
-      run: cd fixtures; ./test.sh
+      run: ./spec/run-tests.sh
