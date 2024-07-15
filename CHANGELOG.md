@@ -1,5 +1,9 @@
 # Change log
 
+## v0.2.5 - 2024.07.17
+
+- Replacing structopt with clap _derive_ feature
+
 ## v0.2.4 - 2024.07.17
 
 - Making output consistent either output file or stdout used.

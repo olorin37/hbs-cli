@@ -2,51 +2,50 @@ use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::path::Path;
+use std::path::PathBuf;
 
-extern crate handlebars;
-extern crate serde_yaml;
-extern crate structopt;
-
+use clap::Parser;
 use glob::glob;
 use handlebars::Handlebars;
 use serde_yaml::Value;
-use std::path::PathBuf;
-use structopt::StructOpt;
 
-#[derive(Debug, StructOpt)]
-#[structopt(
+#[derive(Parser, Debug)]
+#[command(
+    version,
     name = "hbs-cli",
     about = "Simple handlebars CLI",
-    rename_all = "kebab-case"
+    long_about = "Simple CLI for generating text from handlebars templates, \
+                 feed with data from file (YAML parser used is for it)."
 )]
-/// Simple CLI for generating text from handlebars templates, feed with data
-/// from file (YAML parser used is for it).
-struct Opt {
-    #[structopt(parse(from_os_str), name = "PROPS_FILE")]
+struct Cli {
+    #[arg(value_name = "PROPS_FILE")]
     /// Properties file can be ether YAML or JSON (as JSON is YAMLs subset)
     propsfile: PathBuf,
 
-    #[structopt(parse(from_os_str), name = "TEMPLATE_FILE")]
+    #[arg(value_name = "TEMPLATE_FILE")]
     /// Template Handlebars
     template: PathBuf,
 
-    #[structopt(short, long)]
+    #[arg(short, long)]
     /// Not implemented parameter for output file name if not provided output
     /// redirected to stdout.
     output: Option<String>,
 
-    #[structopt(short, long)]
+    #[arg(short, long)]
     /// Register all templates matching to the glob provided by the option.
     /// Those templates can be used as partials.
     register_glob: Option<String>,
 
-    #[structopt(short, long)]
+    #[arg(short, long)]
     /// Make error output verbose.
     verbose: bool,
 }
 
+// StructOpt    rename_all = "kebab-case"
+// structopt(parse(from_os_str), name = "PROPS_FILE")]
+
 fn main() -> Result<(), Box<dyn Error>> {
-    let opt = Opt::from_args();
+    let opt = Cli::parse();
     if opt.verbose {
         eprintln!("{:?}", opt);
     }
