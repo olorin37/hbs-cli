@@ -1,7 +1,7 @@
 [package]
 name = "hbs-cli"
 description = "Simple CLI for generating text from handlebars templates, by feeding them with data from file YAML/JSON."
-version = "0.2.4"
+version = "0.2.5"
 authors = [ "Jakub A. Gramsz <jakub@gramsz.com>" ]
 homepage = "https://github.com/olorin37/hbs-cli"
 repository = "https://github.com/olorin37/hbs-cli"
@@ -13,7 +13,7 @@ license = "MIT"
 edition = "2018"
 
 [dependencies]
-structopt = "0.3.26"
+clap = { version = "4.5.9", features = ["derive"] }
 handlebars = "5.0"
 serde = "1.0"
 serde_yaml = "0.9"
