@@ -1,5 +1,9 @@
 # Change log
 
+## v0.2.6 - 2025.03.25
+
+- Dependencies bump up
+
 ## v0.2.5 - 2024.07.17
 
 - Replacing structopt with clap _derive_ feature
