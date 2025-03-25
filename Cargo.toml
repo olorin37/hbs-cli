@@ -10,7 +10,7 @@ readme = "README.md"
 keywords = ["handlebars", "templating", "cli", "YAML", "JSON"]
 categories = ["command-line-interface", "command-line-utilities", "value-formatting"]
 license = "MIT"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.32", features = ["derive"] }
