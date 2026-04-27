@@ -186,7 +186,7 @@ checksum = "4f467dd6dccf739c208452f8014c75c18bb8301b050ad1cfb27153803edb0f51"
 
 [[package]]
 name = "hbs-cli"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "clap",
  "glob",
