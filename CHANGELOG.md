@@ -1,5 +1,9 @@
 # Change log
 
+## v0.2.7 - 2026.04.28
+
+- Dependencies compatible bump up 
+
 ## v0.2.6 - 2025.03.25
 
 - Dependencies bump up
